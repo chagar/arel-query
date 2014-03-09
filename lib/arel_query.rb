@@ -1,6 +1,11 @@
+require 'arel'
+require 'active_support'
+require 'active_support/rails'
+require 'active_support/core_ext/hash/keys'
+
 require 'arel_query/query'
 
-Arq = ArelQuery::Query
+Aquery = ArelQuery::Query
 
 module ArelQuery
   VERSION = '0.0.1'
@@ -15,13 +20,6 @@ module ArelQuery
   end
 end
   
-if defined?(ActiveRecord::Base) && ActiveRecord::Base.respond_to?(:connection)
-  ArelQuery.connector = ActiveRecord::Base
-else
-  require 'arel_query/active_record_connector'
-  ArelQuery.connector = ArelQuery::Connector::ActiveRecordConnector
-end
-
 unless defined?(ActiveRecord::Relation)
   module ActiveRecord
     class Relation; end
@@ -42,4 +40,13 @@ unless defined?(ActiveRecord::Relation)
   require 'active_record/relation/query_methods'
   require 'active_record/relation/batches'
   require 'active_record/relation/delegation'
+end
+
+if defined?(ActiveRecord::Base) && ActiveRecord::Base.respond_to?(:connection)
+  ArelQuery.connector = ActiveRecord::Base
+else
+  require 'arel_query/active_record_connector'
+  ArelQuery.connector = ArelQuery::Connector::ActiveRecordConnector
+
+  require 'active_record/relation/predicate_builder'
 end

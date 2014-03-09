@@ -5,27 +5,28 @@
 
 require 'yaml'
 require 'pathname'
-require 'arel'
-require 'active_support'
-require 'active_support/rails'
-require 'active_support/core_ext/hash/keys'
 
-require 'active_record/runtime_registry'
 require 'active_record/connection_handling'
+require 'active_record/runtime_registry'
 
 require 'active_record/errors'
 require 'active_record/connection_adapters/abstract/connection_pool'
 require 'active_record/connection_adapters/connection_specification'
 
+require 'active_record/sanitization'
 
 module ArelQuery
   module Connector
     class ActiveRecordConnector
+      include ActiveRecord::Sanitization
       extend ActiveRecord::ConnectionHandling
       cattr_accessor :configurations
 
       # Called in connection adapters. Ignore.
       def self.default_timezone; nil; end
+
+      # Called by ActiveRecord::Relation::PredicateBuilder#build_from_hash. Ignore.
+      def self.reflect_on_association(x); nil; end
 
       # Compare Rails::Application::Bootstrap#initialize_logger
       def self.logger
@@ -56,7 +57,7 @@ module ArelQuery
       def self.connection_handler
         # TODO Figure this out
         #ActiveRecord::RuntimeRegistry.connection_handler || ActiveRecord::ConnectionAdapters::ConnectionHandler.new
-        @@connection_handler ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
+        @connection_handler ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
       end
   
       # Compare Rails::Application::Configuration#database_configuration
